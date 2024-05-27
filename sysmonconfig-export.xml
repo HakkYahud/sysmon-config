@@ -531,6 +531,7 @@
 		<ProcessAccess onmatch="exclude">
 			<SourceImage condition="is">C:\Program Files\Aurora-Agent\aurora-agent.exe</SourceImage>
 			<SourceImage condition="is">C:\Program Files\Aurora-Agent\aurora-agent-64.exe</SourceImage>
+			<SourceImage condition="contains">C:\ProgramData\Microsoft\Windows Defender\Platform\</SourceImage>
 		</ProcessAccess>
 	</RuleGroup>
 
