@@ -159,7 +159,6 @@
 			<CommandLine condition="is">C:\Windows\system32\svchost.exe -k netsvcs -p -s ncaSvc</CommandLine> <!--Windows: Network Connectivity Assistant [ http://www.blackviper.com/windows-services/network-connectivity-assistant/ ] -->
 			<CommandLine condition="is">C:\Windows\system32\svchost.exe -k netsvcs -s BDESVC</CommandLine> <!--Windows:Network: BitLocker Drive Encryption-->
 			<CommandLine condition="is">C:\Windows\System32\svchost.exe -k netsvcs -p -s BDESVC</CommandLine> <!--Microsoft:Win10:1903:Network: BitLocker Drive Encryption-->
-			<CommandLine condition="is">C:\Windows\system32\svchost.exe -k netsvcs -p -s BITS</CommandLine> <!--Windows:Network: Background Intelligent File Transfer (BITS) -->
 			<CommandLine condition="is">C:\Windows\system32\svchost.exe -k netsvcs -s BITS</CommandLine> <!--Windows:Network: Background Intelligent File Transfer (BITS) -->
 			<CommandLine condition="is">C:\Windows\system32\svchost.exe -k netsvcs -s CertPropSvc</CommandLine>
 			<CommandLine condition="is">C:\Windows\system32\svchost.exe -k netsvcs -s DsmSvc</CommandLine>
@@ -365,6 +364,7 @@
 			<Image condition="image">psinfo.exe</Image>
 			<Image condition="image">RDCMan.exe</Image>
 			<!--Ports: Suspicious-->
+			<DestinationPort name="SMB" condition="is">445</DestinationPort> <!--SMB protocol, monitor admin connections-->
 			<DestinationPort name="SSH" condition="is">22</DestinationPort> <!--SSH protocol, monitor admin connections-->
 			<DestinationPort name="Telnet" condition="is">23</DestinationPort> <!--Telnet protocol, monitor admin connections, insecure-->
 			<DestinationPort name="SMTP" condition="is">25</DestinationPort> <!--SMTP mail protocol port, insecure, used by threats-->
@@ -531,7 +531,6 @@
 		<ProcessAccess onmatch="exclude">
 			<SourceImage condition="is">C:\Program Files\Aurora-Agent\aurora-agent.exe</SourceImage>
 			<SourceImage condition="is">C:\Program Files\Aurora-Agent\aurora-agent-64.exe</SourceImage>
-			<SourceImage condition="contains">C:\ProgramData\Microsoft\Windows Defender\Platform\</SourceImage>
 		</ProcessAccess>
 	</RuleGroup>
 
@@ -548,6 +547,7 @@
 			<TargetFilename name="OutlookAttachment" condition="contains">\Content.Outlook\</TargetFilename> <!--Microsoft:Outlook: attachments-->
 			<TargetFilename name="Downloads" condition="contains">\Downloads\</TargetFilename> <!--Downloaded files. Does not include "Run" files in IE-->
 			<TargetFilename name="Public" condition="contains">C:\Users\Public\</TargetFilename>
+			<TargetFilename name="AppData" condition="contains">\AppData\Local\Temp\</TargetFilename>
 			<TargetFilename name="T1176" condition="end with">.crx</TargetFilename> <!--Chrome extension-->
 			<TargetFilename condition="end with">.application</TargetFilename> <!--Microsoft:ClickOnce: [ https://blog.netspi.com/all-you-need-is-one-a-clickonce-love-story/ ] -->
 			<TargetFilename condition="end with">.appref-ms</TargetFilename> <!--Microsoft:ClickOnce application | Credit @ion-storm -->
@@ -970,6 +970,8 @@
 		<!--DATA: UtcTime, ProcessGuid, ProcessId, PipeName, Image-->
 		<RuleGroup name="" groupRelation="or">
 			<PipeEvent onmatch="include">
+				<!-- Personal Pipe -->
+				<PipeName condition="contains any">YahudPipe</PipeName>
 				<!-- Remote Command Execution Tools -->
 				<PipeName condition="contains any">paexec;remcom;csexec</PipeName>
 				<!-- Password or Credential Dumpers -->
