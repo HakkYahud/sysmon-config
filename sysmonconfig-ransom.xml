@@ -1,0 +1,90 @@
+<Sysmon schemaversion="4.90">
+	<!--SYSMON META CONFIG-->
+	<HashAlgorithms>md5,sha256,IMPHASH</HashAlgorithms> <!-- Both MD5 and SHA256 are the industry-standard algorithms. Remove IMPHASH if you do not use DLL import fingerprinting. -->
+	<CheckRevocation/> <!-- Check loaded drivers, log if their code-signing certificate has been revoked, in case malware stole one to sign a kernel driver -->
+
+	<!-- <ImageLoad/> --> <!-- Would manually force-on ImageLoad monitoring, even without configuration below. Included only documentation. -->
+	<!-- <ProcessAccessConfig/> --> <!-- Would manually force-on ProcessAccess monitoring, even without configuration below. Included only documentation. -->
+	<!-- <PipeMonitoringConfig/> --> <!-- Would manually force-on PipeCreated / PipeConnected events, even without configuration below. Included only documentation. -->
+	<!-- <ArchiveDirectory> -->
+
+	<EventFiltering>
+	<!--SYSMON EVENT ID 4 : RESERVED FOR SYSMON SERVICE STATUS MESSAGES-->
+
+		<!--DATA: UtcTime, State, Version, SchemaVersion-->
+		<!--Cannot be filtered.-->
+		
+	<!--SYSMON EVENT ID 11: FILE CREATION-->
+		<RuleGroup name="Do not log process creation" groupRelation="and">
+			<ProcessCreate onmatch="include"/>
+			<ProcessTerminate onmatch="include"/>
+		</RuleGroup>
+		<RuleGroup name="Detect Creation file on suspicious folder" groupRelation="or">
+			<FileCreate onmatch="include">
+				<TargetFilename name="T1023" condition="contains">\Start Menu</TargetFilename> <!--Windows: Startup links and shortcut modification [ https://attack.mitre.org/wiki/Technique/T1023 ] -->
+				<TargetFilename name="T1165" condition="contains">\Startup\</TargetFilename> <!--Microsoft:Changes to user's auto-launched files and shortcuts-->
+				<TargetFilename name="OutlookAttachment" condition="contains">\Content.Outlook\</TargetFilename> <!--Microsoft:Outlook: attachments-->
+				<TargetFilename name="Downloads" condition="contains">\Downloads\</TargetFilename> <!--Downloaded files. Does not include "Run" files in IE-->
+				<TargetFilename name="Documents" condition="contains">\Documents\</TargetFilename>
+				<TargetFilename name="Desktop" condition="contains">\Desktop\</TargetFilename>
+				<TargetFilename name="Public" condition="contains">C:\Users\Public\</TargetFilename>
+				<TargetFilename name="Temp" condition="contains">\AppData\Local\Temp\</TargetFilename>
+				<TargetFilename name="AppData" condition="contains">\AppData\Roaming\</TargetFilename>
+				<TargetFilename name="System32" condition="contains">\Windows\System32</TargetFilename>
+			</FileCreate>
+		</RuleGroup>
+		<RuleGroup name="Exclude verbose File Extension" groupRelation="or">
+			<FileCreate onmatch="exclude">
+				<TargetFilename condition="end with">.tmp</TargetFilename>
+				<TargetFilename condition="end with">.bin</TargetFilename>
+				<TargetFilename condition="end with">.pf</TargetFilename>
+				<TargetFilename condition="end with">.xml</TargetFilename>
+				<TargetFilename condition="end with">.aodl</TargetFilename>
+				<TargetFilename condition="end with">.gif</TargetFilename>
+				<TargetFilename condition="end with">.css</TargetFilename>
+				<TargetFilename condition="end with">.jpg</TargetFilename>
+				<TargetFilename condition="end with">.dat</TargetFilename>
+				<TargetFilename condition="end with">.db</TargetFilename>
+				<TargetFilename condition="end with">.log</TargetFilename>
+				<TargetFilename condition="end with">.txt</TargetFilename>
+				<TargetFilename condition="end with">.svg</TargetFilename>
+				<TargetFilename condition="end with">.json</TargetFilename>
+				<TargetFilename condition="end with">.etl</TargetFilename>
+				<TargetFilename condition="end with">.docx</TargetFilename>
+				<TargetFilename condition="end with">.pptx</TargetFilename>
+				<TargetFilename condition="end with">.xlsx</TargetFilename>
+				<TargetFilename condition="end with">.pdf</TargetFilename>
+				<TargetFilename condition="end with">.db-journal</TargetFilename>
+				<TargetFilename condition="end with">.etl</TargetFilename>
+				<TargetFilename condition="end with">.ini</TargetFilename>
+				<TargetFilename condition="end with">.temp</TargetFilename>
+				<TargetFilename condition="end with">.ldb</TargetFilename>
+				<TargetFilename condition="contains">Microsoft\Edge\User Data\Default\Cache\Cache_Data\f_00</TargetFilename>
+				<TargetFilename condition="end with">.db-wal</TargetFilename>
+				<TargetFilename condition="end with">.db-shm</TargetFilename>
+	<!--SECTION: Microsoft-->
+				<Image condition="is">C:\Program Files (x86)\EMET 5.5\EMET_Service.exe</Image> <!--Microsoft:EMET: Writes to C:\Windows\AppPatch\-->
+				<!--SECTION: Microsoft:Office:Click2Run-->
+				<Image condition="is">C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeC2RClient.exe</Image> <!-- Microsoft:Office Click2Run-->
+				<!--SECTION: Windows-->
+				<Image condition="is">C:\Windows\system32\smss.exe</Image> <!-- Windows: Session Manager SubSystem: Creates swapfile.sys,pagefile.sys,hiberfile.sys-->
+				<Image condition="is">C:\Windows\system32\CompatTelRunner.exe</Image> <!-- Windows: Windows 10 app, creates tons of cache files-->
+				<Image condition="is">\\?\C:\Windows\system32\wbem\WMIADAP.EXE</Image> <!-- Windows: WMI Performance updates-->
+				<Image condition="is">C:\Windows\system32\mobsync.exe</Image> <!--Windows: Network file syncing-->
+				<Image condition="is">C:\Windows\System32\WUDFHost.exe</Image> <!--Windows: Windows User-Mode Driver Framework Host. Safe as long as in the correct path. -->
+				<TargetFilename condition="begin with">C:\Windows\system32\DriverStore\Temp\</TargetFilename> <!-- Windows: Temp files by DrvInst.exe-->
+				<TargetFilename condition="begin with">C:\Windows\system32\wbem\Performance\</TargetFilename> <!-- Windows: Created in wbem by WMIADAP.exe-->
+				<TargetFilename condition="begin with">C:\Windows\Installer\</TargetFilename> <!--Windows:Installer: Ignore MSI installer files caching-->
+				<!--SECTION: Windows:Updates-->
+				<TargetFilename condition="begin with">C:\$WINDOWS.~BT\Sources\</TargetFilename> <!-- Windows: Feature updates containing lots of .exe and .sys-->
+				<Image condition="begin with">C:\Windows\winsxs\amd64_microsoft-windows</Image> <!-- Windows: Windows update-->
+			</FileCreate>
+		</RuleGroup>
+	<!--SYSMON EVENT ID 16 : SYSMON CONFIGURATION CHANGE-->
+		<!--EVENT 16: "Sysmon config state changed"-->
+		<!--COMMENT:	This ONLY logs if the hash of the configuration changes. Running "sysmon.exe -c" with the current configuration will not be logged with Event 16-->
+
+		<!--DATA: UtcTime, Configuration, ConfigurationFileHash-->
+		<!--Cannot be filtered.-->
+	</EventFiltering>
+</Sysmon>
