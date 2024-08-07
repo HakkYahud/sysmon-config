@@ -62,6 +62,12 @@
 				<TargetFilename condition="contains">Microsoft\Edge\User Data\Default\Cache\Cache_Data\f_00</TargetFilename>
 				<TargetFilename condition="end with">.db-wal</TargetFilename>
 				<TargetFilename condition="end with">.db-shm</TargetFilename>
+				<TargetFilename condition="end with">.pb</TargetFilename>
+				<TargetFilename condition="end with">.html</TargetFilename>
+				<TargetFilename condition="end with">.dat</TargetFilename>
+				<TargetFilename condition="end with">.csproj</TargetFilename>
+				<TargetFilename condition="contains">\AppData\Local\Temp\chrome_Unpacker_BeginUnzipping</TargetFilename>
+				<TargetFilename condition="contains">\AppData\Local\Temp\edge_BITS</TargetFilename>
 	<!--SECTION: Microsoft-->
 				<Image condition="is">C:\Program Files (x86)\EMET 5.5\EMET_Service.exe</Image> <!--Microsoft:EMET: Writes to C:\Windows\AppPatch\-->
 				<!--SECTION: Microsoft:Office:Click2Run-->
